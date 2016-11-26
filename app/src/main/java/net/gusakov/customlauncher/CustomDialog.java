@@ -29,10 +29,10 @@ public class CustomDialog extends Dialog{
     LinearLayout rootViewLayout;
     private List<AppDetail> appsList;
     private Map<String,AppDetail> apps;
-    private List<String> appsposition;
+    private String[] appsposition;
     ListView list;
 
-    public CustomDialog(Activity a,View view,Map<String,AppDetail> appMap,List<String>appsPosition) {
+    public CustomDialog(Activity a,View view,Map<String,AppDetail> appMap,String[] appsPosition) {
         super(a);
         rootViewLayout=(LinearLayout)view;
         activity=a;
@@ -42,8 +42,8 @@ public class CustomDialog extends Dialog{
         boolean addPosition=true;
         for(String appKey:appMap.keySet()) {
             addPosition=true;
-            for(int i=0;i<appsposition.size();i++){
-                if (appKey.equals(appsPosition.get(i))){
+            for(int i=0;i<appsposition.length;i++){
+                if (appKey.equals(appsPosition[i])){
                     addPosition=false;
                     break;
                 }
@@ -60,8 +60,6 @@ public class CustomDialog extends Dialog{
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.custom_dialog);
-
-        setDialogSize(0.9,0.8);
 
         loadListView();
 //        manager=activity.getPackageManager();
@@ -117,7 +115,7 @@ public class CustomDialog extends Dialog{
                 TextView tv = (TextView)rootViewLayout.getChildAt(1);
                 img.setImageDrawable(apps.get(packageStr).icon);
                 tv.setText(apps.get(packageStr).label);
-                appsposition.add(packageStr);
+                appsposition[Integer.valueOf((String)rootViewLayout.getTag())]=packageStr;
                 CustomDialog.this.dismiss();
             }
         });

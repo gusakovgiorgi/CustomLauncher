@@ -34,15 +34,29 @@ public class HomeActivity extends Activity{
     private com.rey.material.widget.Switch switchBtn;
     private PackageManager manager;
     private Map<String, AppDetail> apps;
-    List<String> appsPosotion = new ArrayList<>(6);
     private SharedPreferences sharedPref;
     private static final String FIRST_TIME_SHARED = "firstTIme";
     private static final String SHARED_PREF_STRING_DEFAULT_VALUE = "no package";
     private static final int VISIBLE_APPS_IN_LAUNCHER_QUANTITY = 6;
+    String[] appsPosotion = new String[VISIBLE_APPS_IN_LAUNCHER_QUANTITY];
     private static final int HASH_MAP_SIZE = 15;
+    private DragAndDrop dragAndDrop;
+    private ImageView firstImageView;
+    private LinearLayout firstLinearLayout;
+    private ImageView secondImageView;
+    private LinearLayout secondLinearLayout;
+    private ImageView thirdImageView;
+    private LinearLayout thirdLinearLayout;
+    private ImageView fourthdImageView;
+    private LinearLayout fourthLinearLayout;
+    private ImageView fifthImageView;
+    private LinearLayout fifthLinearLayout;
+    private ImageView sixthImageView;
+    private LinearLayout sixthLinearLayout;
+
 
     private final List<String> certifedApp = new ArrayList<>(Arrays.asList("com.android.dialer", "com.android.contacts", "com.android.mms",
-            "com.android.settings", "com.android.calendar", "com.android.music", "com.android.calculator2", "com.android.deskclock", "com.google.android.music"));
+            "com.android.calendar","com.android.settings", "com.android.music", "com.android.calculator2", "com.android.deskclock", "com.google.android.music"));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +75,6 @@ public class HomeActivity extends Activity{
         }else{
             appsPosotion=loadAppsPositions();
         }
-
         ((CustomDigitalClock) findViewById(R.id.digitalClockId)).setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
         initialLComponents();
         initilTies();
@@ -69,18 +82,21 @@ public class HomeActivity extends Activity{
 
     }
 
-    private void LoadDefaultAppsPosition(List list) {
+    private void LoadDefaultAppsPosition(String[] list) {
         if (isPackageExisted(certifedApp.get(0), ".DialtactsActivity")) {
-            list.add(certifedApp.get(0) + ".DialtactsActivity");
+            list[0]=(certifedApp.get(0) + ".DialtactsActivity");
         }
         if (isPackageExisted(certifedApp.get(0), ".LaunchContactsActivity")) {
-            list.add(certifedApp.get(0) + ".LaunchContactsActivity");
+            list[1]=(certifedApp.get(0) + ".LaunchContactsActivity");
             certifedApp.remove(1);
-            list.add(certifedApp.get(1));
-        }else {
-            list.add(certifedApp.get(1));
-            list.add(certifedApp.get(2));
+//            list[1]=(certifedApp.get(1));
+//            list[2]=(certifedApp.get(2));
+//            list[3]=(certifedApp.get(3));
         }
+            list[1]=(certifedApp.get(1));
+            list[2]=(certifedApp.get(2));
+            list[3]=(certifedApp.get(3));
+
     }
 
     @Override
@@ -128,13 +144,12 @@ public class HomeActivity extends Activity{
     }
 
     private void putAppsOnHome() {
-        int length = (apps.size() > VISIBLE_APPS_IN_LAUNCHER_QUANTITY) ? VISIBLE_APPS_IN_LAUNCHER_QUANTITY : apps.size();
         LinearLayout firstLinearLayout = (LinearLayout) findViewById(R.id.appFirstLineId);
         LinearLayout secondLinearLayout = (LinearLayout) findViewById(R.id.appSecondLineId);
 
         for (int i = 0; i < VISIBLE_APPS_IN_LAUNCHER_QUANTITY; i++) {
-            if (appsPosotion.size() > i) {
-                String packageStr = appsPosotion.get(i);
+            if (appsPosotion[i]!=null) {
+                String packageStr = appsPosotion[i];
                 if (apps.containsKey(packageStr)) {
                     if(i<VISIBLE_APPS_IN_LAUNCHER_QUANTITY/2) {
                         ImageView img = (ImageView) ((LinearLayout) firstLinearLayout.getChildAt(i % 3)).getChildAt(0);
@@ -150,7 +165,7 @@ public class HomeActivity extends Activity{
                         tv.setText(apps.get(packageStr).label);
                     }
                 } else {
-                    appsPosotion.remove(i--);
+                    appsPosotion[i--]=null;
                 }
             }
 
@@ -170,7 +185,7 @@ public class HomeActivity extends Activity{
 //        }
     }
 
-    private void saveAppsPositions(List list){
+    private void saveAppsPositions(String[] list){
         ObjectOutputStream obOut=null;
         try {
             FileOutputStream fileOut=openFileOutput(POSITION_SER_FILE,MODE_PRIVATE);
@@ -191,12 +206,12 @@ public class HomeActivity extends Activity{
         }
     }
 
-    private List loadAppsPositions(){
+    private String[] loadAppsPositions(){
         ObjectInputStream objIn = null;
         try{
             FileInputStream fileIn=openFileInput(POSITION_SER_FILE);
             objIn=new ObjectInputStream(fileIn);
-            return (List)objIn.readObject();
+            return (String[])objIn.readObject();
 
         }catch(IOException e){
             e.printStackTrace();
@@ -212,7 +227,7 @@ public class HomeActivity extends Activity{
             }
         }
 
-        return new ArrayList();
+        return new String[VISIBLE_APPS_IN_LAUNCHER_QUANTITY];
     }
 
     private boolean isPackageExisted(String targetPackage, String activityName) {
@@ -302,6 +317,36 @@ public class HomeActivity extends Activity{
                 }
             }
         });
+        dragAndDrop=new DragAndDrop(this);
+        firstImageView=(ImageView)findViewById(R.id.firstImageViewId);
+        secondImageView=(ImageView)findViewById(R.id.secondImageViewId);
+        thirdImageView=(ImageView)findViewById(R.id.thirdImageViewId);
+        fourthdImageView=(ImageView)findViewById(R.id.fourthImageViewId);
+        fifthImageView=(ImageView)findViewById(R.id.fifthImageViewId);
+        sixthImageView=(ImageView)findViewById(R.id.sixthImageViewId);
+
+        firstLinearLayout=(LinearLayout)findViewById(R.id.firstTileId);
+        secondLinearLayout=(LinearLayout)findViewById(R.id.secondtTileId);
+        thirdLinearLayout=(LinearLayout)findViewById(R.id.thirdTileId);
+        fourthLinearLayout=(LinearLayout)findViewById(R.id.fourthTileId);
+        fifthLinearLayout=(LinearLayout)findViewById(R.id.fifthtTileId);
+        sixthLinearLayout=(LinearLayout)findViewById(R.id.sixthTileId);
+
+
+        firstImageView.setOnLongClickListener(dragAndDrop);
+        secondImageView.setOnLongClickListener(dragAndDrop);
+        thirdImageView.setOnLongClickListener(dragAndDrop);
+        fourthdImageView.setOnLongClickListener(dragAndDrop);
+        fifthImageView.setOnLongClickListener(dragAndDrop);
+        sixthImageView.setOnLongClickListener(dragAndDrop);
+
+        firstLinearLayout.setOnDragListener(dragAndDrop);
+        secondLinearLayout.setOnDragListener(dragAndDrop);
+        thirdLinearLayout.setOnDragListener(dragAndDrop);
+        fourthLinearLayout.setOnDragListener(dragAndDrop);
+        fifthLinearLayout.setOnDragListener(dragAndDrop);
+        sixthLinearLayout.setOnDragListener(dragAndDrop);
+
     }
 
     private void startHomeDefaultChooser() {
