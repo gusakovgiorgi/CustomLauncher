@@ -4,12 +4,12 @@
 
     <stroke
         android:width="2dp"
-        android:color="#FFFF0000" />
+        android:color="#FFFFFF" />
 
     <corners
-        android:bottomLeftRadius="7dp"
-        android:bottomRightRadius="7dp"
-        android:topLeftRadius="7dp"
-        android:topRightRadius="7dp" />
+        android:bottomLeftRadius="20dp"
+        android:bottomRightRadius="20dp"
+        android:topLeftRadius="20dp"
+        android:topRightRadius="20dp" />
 
 </shape>

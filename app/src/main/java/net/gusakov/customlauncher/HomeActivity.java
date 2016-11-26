@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HomeActivity extends Activity{
+public class HomeActivity extends Activity implements View.OnClickListener{
 
     private static final String TAG = "myTag";
     private static final int MY_REQUEST_CODE = 1;
@@ -53,6 +53,7 @@ public class HomeActivity extends Activity{
     private LinearLayout fifthLinearLayout;
     private ImageView sixthImageView;
     private LinearLayout sixthLinearLayout;
+    private LinearLayout removeLinearLayout;
 
 
     private final List<String> certifedApp = new ArrayList<>(Arrays.asList("com.android.dialer", "com.android.contacts", "com.android.mms",
@@ -331,6 +332,7 @@ public class HomeActivity extends Activity{
         fourthLinearLayout=(LinearLayout)findViewById(R.id.fourthTileId);
         fifthLinearLayout=(LinearLayout)findViewById(R.id.fifthtTileId);
         sixthLinearLayout=(LinearLayout)findViewById(R.id.sixthTileId);
+        removeLinearLayout=(LinearLayout)findViewById(R.id.removeContainerId);
 
 
         firstImageView.setOnLongClickListener(dragAndDrop);
@@ -346,6 +348,7 @@ public class HomeActivity extends Activity{
         fourthLinearLayout.setOnDragListener(dragAndDrop);
         fifthLinearLayout.setOnDragListener(dragAndDrop);
         sixthLinearLayout.setOnDragListener(dragAndDrop);
+        removeLinearLayout.setOnDragListener(dragAndDrop);
 
     }
 
@@ -384,4 +387,9 @@ public class HomeActivity extends Activity{
         Log.v(TAG, "requestCode=" + requestCode + ", resultCode=" + resultCode);
     }
 
+
+    @Override
+    public void onClick(View v) {
+        launchApp(v);
+    }
 }

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.graphics.drawable.Drawable;
+import android.util.TypedValue;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -12,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -28,22 +31,27 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
     private View draggedTextView;
     private TimerTask mTimerTask;
     private Timer mTimer;
-    private boolean swipeEnded=false;
+    private LinearLayout removeLinear;
+    private TextView removeTextView;
+    private boolean swipeEnded = false;
 
 
-     private  void setSwipeEnded(boolean flag){
-        swipeEnded=flag;
+    private void setSwipeEnded(boolean flag) {
+        swipeEnded = flag;
     }
 
-    private  boolean getSwipeEnded(){
-       return swipeEnded;
+    private boolean getSwipeEnded() {
+        return swipeEnded;
     }
 
     DragAndDrop(Activity activity) {
         a = activity;
+        removeLinear = (LinearLayout) a.findViewById(R.id.removeContainerId);
+        removeTextView=(TextView)a.findViewById(R.id.removeTextViewId);
         enterShape = a.getResources().getDrawable(
                 R.drawable.drop_shade);
         normalShape = a.getResources().getDrawable(R.drawable.normal_shade);
+
     }
 
     @Override
@@ -51,13 +59,17 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
         int action = event.getAction();
         View draggedView = (View) event.getLocalState();
         LinearLayout currentContainer = (LinearLayout) v;
+        ViewGroup previousContainer = (ViewGroup) draggedView.getParent();
 
         switch (event.getAction()) {
             case DragEvent.ACTION_DRAG_STARTED:
-                v.setBackgroundDrawable(normalShape);
+                if(v!=removeLinear) {
+                    v.setBackgroundDrawable(normalShape);
+                }else{
+                    removeTextView.setVisibility(View.VISIBLE);
+                }
                 break;
             case DragEvent.ACTION_DRAG_ENTERED:
-                v.setBackgroundDrawable(enterShape);
 
 
 
@@ -65,51 +77,72 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
                 draggedView = (View) event.getLocalState();
 
                 currentContainer = (LinearLayout) v;
-                ViewGroup previousContainer = (ViewGroup) draggedView.getParent();
+//                ViewGroup previousContainer = (ViewGroup) draggedView.getParent();
 
                 if (currentContainer != previousContainer) {
+                    if(currentContainer==removeLinear){
+                        removeTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX,(long)(removeTextView.getTextSize()*1.5));
+                    }else {
+                        v.setBackgroundDrawable(enterShape);
 
+                        String curretnAppText = ((TextView) currentContainer.getChildAt(1)).getText().toString();
 
-                    String curretnAppText = ((TextView) currentContainer.getChildAt(1)).getText().toString();
+                        String draggedAppText = event.getClipDescription().getLabel().toString();
 
-                    String draggedAppText = event.getClipDescription().getLabel().toString();
-
-                    if (mTimer != null) {
-                        mTimer.cancel();
+                        if (mTimer != null) {
+                            mTimer.cancel();
+                        }
+                        mTimer = new Timer();
+                        mTimerTask = new MyTimerTask(draggedView, currentContainer, previousContainer, curretnAppText, draggedAppText);
+                        mTimer.schedule(mTimerTask, 500L);
+                        setSwipeEnded(false);
                     }
-                    mTimer = new Timer();
-                    mTimerTask = new MyTimerTask(draggedView, currentContainer, previousContainer, curretnAppText, draggedAppText);
-                    mTimer.schedule(mTimerTask,1000L);
-                    setSwipeEnded(false);
                 }
+
 
 //                draggedView.setVisibility(View.VISIBLE);
 
 
                 break;
             case DragEvent.ACTION_DRAG_EXITED:
-                v.setBackgroundDrawable(normalShape);
-                if(mTimer!=null){
+                if(v==removeLinear) {
+                    removeTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX,a.getResources().getDimensionPixelSize(R.dimen.remove_text_size));
+                }else{
+                    v.setBackgroundDrawable(normalShape);
+                }
+                if (mTimer != null) {
                     mTimer.cancel();
-                    mTimer=null;
+                    mTimer = null;
                 }
                 break;
             case DragEvent.ACTION_DROP:
 
-                if(getSwipeEnded()) {
+                if (currentContainer == removeLinear) {
+                    previousContainer.removeView(draggedView);
+                    ImageView img = new ImageView(a);
+                    img.setImageResource(R.drawable.no_app);
+                    img.setOnClickListener((HomeActivity) a);
+                    img.setOnLongClickListener(this);
+                    previousContainer.addView(img, 0);
+                    ((TextView) previousContainer.getChildAt(1)).setText("Choose app");
+                    previousContainer.getChildAt(1).setVisibility(View.VISIBLE);
+                } else if (getSwipeEnded()) {
                     draggedView.setVisibility(View.VISIBLE);
                     currentContainer.getChildAt(1).setVisibility(View.VISIBLE);
-                }else{
+                } else {
                     returnDraggedView();
-                    if(mTimer!=null){
+                    if (mTimer != null) {
                         mTimer.cancel();
-                        mTimer=null;
+                        mTimer = null;
                     }
                 }
 
-            break;
+                break;
             case DragEvent.ACTION_DRAG_ENDED:
                 v.setBackgroundDrawable(null);
+                if(v==removeLinear) {
+                    removeTextView.setVisibility(View.INVISIBLE);
+                }
                 if (outOfBound(event)) {
                     returnDraggedView();
                 }
