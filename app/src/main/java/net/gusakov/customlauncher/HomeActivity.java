@@ -144,7 +144,10 @@ public class HomeActivity extends Activity implements View.OnClickListener{
 //        ((CustomDigitalClock) findViewById(R.id.digitalClockId)).setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
         initialLComponents();
         initilTies();
-        startService(new Intent(this,MyService.class));
+        Intent si=new Intent(this,MyService.class);
+        si.putExtra("id",getTaskId());
+//        startService(si);
+        Log.v(TAG,"taskId="+getTaskId());
 
     }
     @Override
