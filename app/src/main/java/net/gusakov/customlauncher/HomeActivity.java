@@ -1,25 +1,88 @@
 package net.gusakov.customlauncher;
 
+import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.Dialog;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.LoaderManager;
+import android.app.PendingIntent;
+import android.app.SharedElementCallback;
+import android.app.TaskStackBuilder;
+import android.app.VoiceInteractor;
+import android.app.assist.AssistContent;
+import android.content.BroadcastReceiver;
+import android.content.ComponentCallbacks;
 import android.content.ComponentName;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.IntentSender;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.database.Cursor;
+import android.database.DatabaseErrorHandler;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.nfc.Tag;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.PersistableBundle;
+import android.os.Process;
+import android.os.UserHandle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.transition.Scene;
+import android.transition.TransitionManager;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.ActionMode;
+import android.view.ContextMenu;
+import android.view.Display;
+import android.view.DragAndDropPermissions;
+import android.view.DragEvent;
+import android.view.KeyEvent;
+import android.view.KeyboardShortcutGroup;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.SearchEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toolbar;
 
+import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,6 +117,8 @@ public class HomeActivity extends Activity implements View.OnClickListener{
     private ImageView sixthImageView;
     private LinearLayout sixthLinearLayout;
     private LinearLayout removeLinearLayout;
+    private boolean saved=false;
+    private boolean allowPauseActivity=false;
 
 
     private final List<String> certifedApp = new ArrayList<>(Arrays.asList("com.android.dialer", "com.android.contacts", "com.android.mms",
@@ -66,7 +131,7 @@ public class HomeActivity extends Activity implements View.OnClickListener{
         Log.v(TAG, "activityCreated");
 
         sharedPref = getPreferences(MODE_PRIVATE);
-        boolean firtsTime =sharedPref.getBoolean(FIRST_TIME_SHARED, true);
+        boolean firtsTime = true;//sharedPref.getBoolean(FIRST_TIME_SHARED, true);
         if (firtsTime) {
             LoadDefaultAppsPosition(appsPosotion);
 
@@ -76,11 +141,28 @@ public class HomeActivity extends Activity implements View.OnClickListener{
         }else{
             appsPosotion=loadAppsPositions();
         }
-        ((CustomDigitalClock) findViewById(R.id.digitalClockId)).setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
+//        ((CustomDigitalClock) findViewById(R.id.digitalClockId)).setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
         initialLComponents();
         initilTies();
+        startService(new Intent(this,MyService.class));
 
+    }
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        Log.i(TAG,"key code="+event.getKeyCode());
+        if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Log.i(TAG,"key code="+keyCode);
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void LoadDefaultAppsPosition(String[] list) {
@@ -120,9 +202,21 @@ public class HomeActivity extends Activity implements View.OnClickListener{
 
     @Override
     protected void onPause() {
-        super.onPause();
+
         Log.v(TAG, "onPause()");
+        if(!allowPauseActivity) {
+//            ActivityManager activityManager = (ActivityManager) getApplicationContext()
+//                    .getSystemService(Context.ACTIVITY_SERVICE);
+//
+//            activityManager.moveTaskToFront(getTaskId(), 0);
+//            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+//            sendBroadcast(closeDialog);
+        }else {
+            allowPauseActivity=false;
+        }
+        super.onPause();
     }
+
 
     @Override
     protected void onStop() {
@@ -133,9 +227,22 @@ public class HomeActivity extends Activity implements View.OnClickListener{
     }
 
     @Override
+    public void onDetachedFromWindow() {
+        Log.v(TAG, "onDetach()");
+        super.onDetachedFromWindow();
+
+    }
+
+    @Override
     protected void onDestroy() {
-        super.onDestroy();
         Log.v(TAG, "onDestroy()");
+        super.onDestroy();
+
+
+    }
+    @Override
+    public boolean onPrepareOptionsMenu (Menu menu) {
+        return false;
     }
 
     private void initilTies() {
@@ -186,7 +293,14 @@ public class HomeActivity extends Activity implements View.OnClickListener{
 //        }
     }
 
+
     private void saveAppsPositions(String[] list){
+        appsPosotion[0]=(String)firstLinearLayout.getChildAt(0).getTag();
+        appsPosotion[1]=(String)secondLinearLayout.getChildAt(0).getTag();
+        appsPosotion[2]=(String)thirdLinearLayout.getChildAt(0).getTag();
+        appsPosotion[3]=(String)fourthLinearLayout.getChildAt(0).getTag();
+        appsPosotion[4]=(String)fifthLinearLayout.getChildAt(0).getTag();
+        appsPosotion[5]=(String)sixthLinearLayout.getChildAt(0).getTag();
         ObjectOutputStream obOut=null;
         try {
             FileOutputStream fileOut=openFileOutput(POSITION_SER_FILE,MODE_PRIVATE);
@@ -230,6 +344,7 @@ public class HomeActivity extends Activity implements View.OnClickListener{
 
         return new String[VISIBLE_APPS_IN_LAUNCHER_QUANTITY];
     }
+
 
     private boolean isPackageExisted(String targetPackage, String activityName) {
         PackageManager pm = getPackageManager();
@@ -280,14 +395,16 @@ public class HomeActivity extends Activity implements View.OnClickListener{
                         if (availableActivities.get(i).activityInfo.name != null && availableActivities.get(i).activityInfo.name.equals("com.android.dialer.LaunchContactsActivity")) {
                             AppDetail app = new AppDetail();
                             app.label = availableActivities.get(i).loadLabel(manager);
-                            app.name = availableActivities.get(i).activityInfo.packageName;
+                            app.name = "com.android.dialer.LaunchContactsActivity";
                             app.icon = availableActivities.get(i).activityInfo.loadIcon(manager);
+                            app.additionalCassname="com.android.dialer.LaunchContactsActivity";
                             apps.put("com.android.dialer.LaunchContactsActivity", app);
                         } else if (availableActivities.get(i).activityInfo.name != null && availableActivities.get(i).activityInfo.name.equals("com.android.dialer.DialtactsActivity")) {
                             AppDetail app = new AppDetail();
                             app.label = availableActivities.get(i).loadLabel(manager);
-                            app.name = availableActivities.get(i).activityInfo.packageName;
+                            app.name = "com.android.dialer.DialtactsActivity";
                             app.icon = availableActivities.get(i).activityInfo.loadIcon(manager);
+                            app.additionalCassname="com.android.dialer.DialtactsActivity";
                             apps.put("com.android.dialer.DialtactsActivity", app);
                         }
                     }
@@ -368,11 +485,21 @@ public class HomeActivity extends Activity implements View.OnClickListener{
             String packageStr= (String) view.getTag();
         Intent intent;
             if(packageStr!=null){
-//                if(packageStr.contains(".DialtactsActivity") || packageStr.contains(".LaunchContactsActivity")){
-//                    String
-//                }
-                intent = manager.getLaunchIntentForPackage(packageStr);
+                if(packageStr.contains(".DialtactsActivity") || packageStr.contains(".LaunchContactsActivity")){
+                    String newPackageStr=packageStr.substring(0,packageStr.lastIndexOf('.'));
+                    intent=new Intent();
+                    intent.setComponent(new ComponentName(newPackageStr,packageStr));
+
+                }else {
+                    intent = manager.getLaunchIntentForPackage(packageStr);
+                }
+                allowPauseActivity=true;
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 HomeActivity.this.startActivity(intent);
+                overridePendingTransition(R.anim.zoom,0);
+
+
             }else{
                 CustomDialog customDialog=new CustomDialog(HomeActivity.this,(ViewGroup)view.getParent(),apps,appsPosotion);
                 customDialog.show();
@@ -392,4 +519,6 @@ public class HomeActivity extends Activity implements View.OnClickListener{
     public void onClick(View v) {
         launchApp(v);
     }
+
 }
+

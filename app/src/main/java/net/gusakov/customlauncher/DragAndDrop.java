@@ -27,6 +27,7 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
     private Activity a;
     Drawable enterShape;
     Drawable normalShape;
+    String[] appsPosition;
     private View draggedImageView;
     private View draggedTextView;
     private TimerTask mTimerTask;
@@ -46,6 +47,7 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
 
     DragAndDrop(Activity activity) {
         a = activity;
+        this.appsPosition=((HomeActivity)a).appsPosotion;
         removeLinear = (LinearLayout) a.findViewById(R.id.removeContainerId);
         removeTextView=(TextView)a.findViewById(R.id.removeTextViewId);
         enterShape = a.getResources().getDrawable(
@@ -82,6 +84,7 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
                 if (currentContainer != previousContainer) {
                     if(currentContainer==removeLinear){
                         removeTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX,(long)(removeTextView.getTextSize()*1.5));
+                        removeTextView.setTextColor(a.getResources().getColor(R.color.redEnter));
                     }else {
                         v.setBackgroundDrawable(enterShape);
 
@@ -107,6 +110,7 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
             case DragEvent.ACTION_DRAG_EXITED:
                 if(v==removeLinear) {
                     removeTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX,a.getResources().getDimensionPixelSize(R.dimen.remove_text_size));
+                    removeTextView.setTextColor(a.getResources().getColor(R.color.red));
                 }else{
                     v.setBackgroundDrawable(normalShape);
                 }
@@ -125,7 +129,9 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
                     img.setOnLongClickListener(this);
                     previousContainer.addView(img, 0);
                     ((TextView) previousContainer.getChildAt(1)).setText("Choose app");
+                    removePositionFromList(appsPosition,draggedView);
                     previousContainer.getChildAt(1).setVisibility(View.VISIBLE);
+
                 } else if (getSwipeEnded()) {
                     draggedView.setVisibility(View.VISIBLE);
                     currentContainer.getChildAt(1).setVisibility(View.VISIBLE);
@@ -150,6 +156,18 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
                 break;
         }
         return true;
+    }
+
+    private void removePositionFromList(String[] appsPosition, View draggedView) {
+        String tag=(String)draggedView.getTag();
+        if(tag!=null) {
+            for (int i = 0; i < appsPosition.length; i++) {
+                if (tag.equals(appsPosition[i])) {
+                    appsPosition[i] = null;
+                    break;
+                }
+            }
+        }
     }
 
     private void returnDraggedView() {

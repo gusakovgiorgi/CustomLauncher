@@ -1,11 +1,48 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="@android:style/Theme.NoTitleBar.Fullscreen">
+    <style name="AppTheme" parent="@android:style/Theme.NoTitleBar.OverlayActionModes">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowAnimationStyle">@null</item>
     </style>
+    <style name="textEnterStyle">
+        <item name="android:shadowColor">#E53935</item>
+        <item name="android:shadowDx">10</item>
+        <item name="android:shadowDy">10</item>
+        <item name="android:textColor">#B71C1C</item>
+        <item name="android:shadowRadius">20</item>
+    </style>
+    <style name="textExitStyle">'
+        <item name="android:textColor">#E53935</item>
+        <item name="android:textSize">@dimen/remove_text_size</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowRadius">0</item>
+    </style>
+    <!--<style name="MyActivityAnimations" parent="@android:style/Animation.Activity">-->
+        <!--<item name="activityOpenEnterAnimation">0</item>-->
+        <!--<item name="activityOpenExitAnimation">0</item>-->
+        <!--<item name="activityCloseEnterAnimation">0</item>-->
+        <!--<item name="activityCloseExitAnimation">0</item>-->
+        <!--<item name="taskOpenEnterAnimation">@anim/task_open_enter</item>-->
+        <!--<item name="taskOpenExitAnimation">@anim/task_open_exit</item>-->
+        <!--<item name="taskCloseEnterAnimation">@anim/task_close_enter</item>-->
+        <!--<item name="taskCloseExitAnimation">@anim/task_close_exit</item>-->
+        <!--<item name="taskToFrontEnterAnimation">@anim/task_open_enter</item>-->
+        <!--<item name="taskToFrontExitAnimation">@anim/task_open_exit</item>-->
+        <!--<item name="taskToBackEnterAnimation">@anim/task_close_enter</item>-->
+        <!--<item name="taskToBackExitAnimation">@anim/task_close_exit</item>-->
+        <!--<item name="wallpaperOpenEnterAnimation">@anim/wallpaper_open_enter</item>-->
+        <!--<item name="wallpaperOpenExitAnimation">@anim/wallpaper_open_exit</item>-->
+        <!--<item name="wallpaperCloseEnterAnimation">@anim/wallpaper_close_enter</item>-->
+        <!--<item name="wallpaperCloseExitAnimation">@anim/wallpaper_close_exit</item>-->
+        <!--<item name="wallpaperIntraOpenEnterAnimation">@anim/wallpaper_intra_open_enter</item>-->
+        <!--<item name="wallpaperIntraOpenExitAnimation">@anim/wallpaper_intra_open_exit</item>-->
+        <!--<item name="wallpaperIntraCloseEnterAnimation">@anim/wallpaper_intra_close_enter</item>-->
+        <!--<item name="wallpaperIntraCloseExitAnimation">@anim/wallpaper_intra_close_exit</item>-->
+    <!--</style>-->
 
 </resources>

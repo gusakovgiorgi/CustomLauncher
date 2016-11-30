@@ -8,6 +8,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.DigitalClock;
 import android.widget.TextClock;
 import android.widget.TextView;
@@ -40,12 +41,8 @@ import java.util.Calendar;
  */
 @Deprecated
 public class DateView extends TextView {
-    // FIXME: implement separate views for hours/minutes/seconds, so
-    // proportional fonts don't shake rendering
 
     Calendar mCalendar;
-    @SuppressWarnings("FieldCanBeLocal") // We must keep a reference to this observer
-    private FormatChangeObserver mFormatChangeObserver;
 
     private Runnable mTicker;
     private Handler mHandler;
@@ -70,14 +67,12 @@ public class DateView extends TextView {
         }
     }
 
+
     @Override
     protected void onAttachedToWindow() {
         mTickerStopped = false;
         super.onAttachedToWindow();
 
-        mFormatChangeObserver = new FormatChangeObserver();
-        getContext().getContentResolver().registerContentObserver(
-                Settings.System.CONTENT_URI, true, mFormatChangeObserver);
         setFormat();
 
         mHandler = new Handler();
@@ -97,10 +92,14 @@ public class DateView extends TextView {
                 c.set(Calendar.MINUTE, 0);
                 c.set(Calendar.SECOND, 0);
                 c.set(Calendar.MILLISECOND, 0);
-                long next = (c.getTimeInMillis()-System.currentTimeMillis());
+                long now=SystemClock.uptimeMillis();
+                long neededTime = (c.getTimeInMillis()-System.currentTimeMillis());
+                long next=now+neededTime;
+                Log.v("dateTag","date time is "+next+"now is="+now);
 //                long now = SystemClock.uptimeMillis();
 //                long next = now + (1000 - now % 1000);
                 mHandler.postAtTime(mTicker, next);
+
             }
         };
         mTicker.run();
@@ -110,8 +109,6 @@ public class DateView extends TextView {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         mTickerStopped = true;
-        getContext().getContentResolver().unregisterContentObserver(
-                mFormatChangeObserver);
     }
 
     private void setFormat() {
@@ -120,20 +117,10 @@ public class DateView extends TextView {
 
     }
 
-    private class FormatChangeObserver extends ContentObserver {
-        public FormatChangeObserver() {
-            super(new Handler());
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            setFormat();
-        }
-    }
 
     @Override
     public CharSequence getAccessibilityClassName() {
         //noinspection deprecation
-        return android.widget.DigitalClock.class.getName();
+        return DateView.class.getName();
     }
 }

@@ -23,6 +23,7 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.format.DateFormat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.TextClock;
 import android.widget.TextView;
 
