@@ -113,7 +113,7 @@ public class DateView extends TextView {
 
     private void setFormat() {
 
-        mFormat = new SimpleDateFormat("EEE, MMM d").toLocalizedPattern();
+        mFormat = new SimpleDateFormat("EEE, MMM d, yyyy").toLocalizedPattern();
 
     }
 

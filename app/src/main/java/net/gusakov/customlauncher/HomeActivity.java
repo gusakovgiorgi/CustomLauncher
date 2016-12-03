@@ -1,88 +1,30 @@
 package net.gusakov.customlauncher;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Dialog;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.LoaderManager;
-import android.app.PendingIntent;
-import android.app.SharedElementCallback;
-import android.app.TaskStackBuilder;
-import android.app.VoiceInteractor;
-import android.app.assist.AssistContent;
-import android.content.BroadcastReceiver;
-import android.content.ComponentCallbacks;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.IntentSender;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.AssetManager;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.database.Cursor;
-import android.database.DatabaseErrorHandler;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.nfc.Tag;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.PersistableBundle;
-import android.os.Process;
-import android.os.UserHandle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.transition.Scene;
-import android.transition.TransitionManager;
-import android.util.AttributeSet;
 import android.util.Log;
-import android.view.ActionMode;
-import android.view.ContextMenu;
-import android.view.Display;
-import android.view.DragAndDropPermissions;
-import android.view.DragEvent;
+import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.KeyboardShortcutGroup;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.SearchEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
-import android.view.accessibility.AccessibilityEvent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
-import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -117,8 +59,8 @@ public class HomeActivity extends Activity implements View.OnClickListener{
     private ImageView sixthImageView;
     private LinearLayout sixthLinearLayout;
     private LinearLayout removeLinearLayout;
-    private boolean saved=false;
-    private boolean allowPauseActivity=false;
+    public static boolean serviceRunning=false;
+    private boolean homeCanPressed =true;
 
 
     private final List<String> certifedApp = new ArrayList<>(Arrays.asList("com.android.dialer", "com.android.contacts", "com.android.mms",
@@ -127,8 +69,12 @@ public class HomeActivity extends Activity implements View.OnClickListener{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        getWindow().addFlags(WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY);
         setContentView(R.layout.activity_home);
+        notExpandStatusBar();
         Log.v(TAG, "activityCreated");
+
+
 
         sharedPref = getPreferences(MODE_PRIVATE);
         boolean firtsTime = true;//sharedPref.getBoolean(FIRST_TIME_SHARED, true);
@@ -144,12 +90,46 @@ public class HomeActivity extends Activity implements View.OnClickListener{
 //        ((CustomDigitalClock) findViewById(R.id.digitalClockId)).setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
         initialLComponents();
         initilTies();
-        Intent si=new Intent(this,MyService.class);
-        si.putExtra("id",getTaskId());
-//        startService(si);
+        startService();
         Log.v(TAG,"taskId="+getTaskId());
 
     }
+
+    private void startService() {
+        if(!serviceRunning) {
+            Intent si = new Intent(this, MyService.class);
+            si.putExtra("id", getTaskId());
+            si.putExtra("pid", android.os.Process.myPid());
+            startService(si);
+            Log.v(TAG,"service started");
+        }
+    }
+
+    private void notExpandStatusBar() {
+        WindowManager manager = ((WindowManager) getApplicationContext()
+                .getSystemService(Context.WINDOW_SERVICE));
+
+        WindowManager.LayoutParams localLayoutParams = new WindowManager.LayoutParams();
+        localLayoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
+        localLayoutParams.gravity = Gravity.TOP;
+        localLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|
+
+                // this is to enable the notification to recieve touch events
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+
+                // Draws over status bar
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+
+        localLayoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+        localLayoutParams.height = (int) (30 * getResources()
+                .getDisplayMetrics().scaledDensity);
+        localLayoutParams.format = PixelFormat.RGB_888;
+
+        customViewGroup view = new customViewGroup(this);
+
+        manager.addView(view, localLayoutParams);
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         Log.i(TAG,"key code="+event.getKeyCode());
@@ -191,8 +171,10 @@ public class HomeActivity extends Activity implements View.OnClickListener{
         Log.v(TAG, "onStart()");
     }
 
+
     @Override
     protected void onRestart() {
+        startService();
         super.onRestart();
         Log.v(TAG, "onRestart()");
     }
@@ -203,20 +185,13 @@ public class HomeActivity extends Activity implements View.OnClickListener{
         Log.v(TAG, "onResume()");
     }
 
+
+
     @Override
     protected void onPause() {
 
         Log.v(TAG, "onPause()");
-        if(!allowPauseActivity) {
-//            ActivityManager activityManager = (ActivityManager) getApplicationContext()
-//                    .getSystemService(Context.ACTIVITY_SERVICE);
-//
-//            activityManager.moveTaskToFront(getTaskId(), 0);
-//            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-//            sendBroadcast(closeDialog);
-        }else {
-            allowPauseActivity=false;
-        }
+
         super.onPause();
     }
 
@@ -225,6 +200,13 @@ public class HomeActivity extends Activity implements View.OnClickListener{
     protected void onStop() {
         super.onStop();
         Log.v(TAG, "onStop()");
+        if(homeCanPressed) {
+            stopService(new Intent(this,MyService.class));
+            Log.v(TAG,"pressed home");
+        }else {
+            homeCanPressed =true;
+            Log.v(TAG,"not pressed home");
+        }
         saveAppsPositions(appsPosotion);
         Log.v(TAG, "saved");
     }
@@ -470,6 +452,7 @@ public class HomeActivity extends Activity implements View.OnClickListener{
         sixthLinearLayout.setOnDragListener(dragAndDrop);
         removeLinearLayout.setOnDragListener(dragAndDrop);
 
+
     }
 
     private void startHomeDefaultChooser() {
@@ -496,17 +479,29 @@ public class HomeActivity extends Activity implements View.OnClickListener{
                 }else {
                     intent = manager.getLaunchIntentForPackage(packageStr);
                 }
-                allowPauseActivity=true;
+                homeCanPressed =true;
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 HomeActivity.this.startActivity(intent);
                 overridePendingTransition(R.anim.zoom,0);
+                restartService(packageStr);
+                homeCanPressed=false;
 
 
             }else{
                 CustomDialog customDialog=new CustomDialog(HomeActivity.this,(ViewGroup)view.getParent(),apps,appsPosotion);
                 customDialog.show();
             }
+    }
+
+    private void restartService(String packageStr) {
+        Intent si=new Intent(this,MyService.class);
+        stopService(si);
+        Log.v(TAG,"service stopped");
+        si.putExtra("id",getTaskId());
+        si.putExtra("pid",android.os.Process.myPid());
+        startService(si);
+        Log.v(TAG,"service start");
     }
 
     @Override
