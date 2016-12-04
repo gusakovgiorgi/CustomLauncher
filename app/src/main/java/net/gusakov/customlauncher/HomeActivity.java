@@ -308,7 +308,7 @@ public class HomeActivity extends Activity implements View.OnClickListener {
         if (intent != null) {
 
             intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             HomeActivity.this.startActivity(intent);
             overridePendingTransition(R.anim.zoom, 0);
             restartService(packageName);
@@ -456,7 +456,7 @@ public class HomeActivity extends Activity implements View.OnClickListener {
     protected void onStop() {
         super.onStop();
         Log.v(TAG, "onStop()");
-        if (homePressed || isMyLauncherDefault()) {
+        if (homePressed /*|| isMyLauncherDefault()*/) {
 //            stopService(new Intent(this, MyService.class));
             saveAppsPositions();
             Log.v(TAG, "saved");

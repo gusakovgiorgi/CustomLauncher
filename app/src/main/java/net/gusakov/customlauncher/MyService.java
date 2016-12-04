@@ -71,7 +71,7 @@ public class MyService extends Service {
         public void run() {
             List<ActivityManager.RunningAppProcessInfo> runningTasks = manager.getRunningAppProcesses();
             if (runningTasks != null && runningTasks.size() > 0) {
-                Log.v("myTag","topActivity="+runningTasks.get(0).processName+", importance="+runningTasks.get(0).importance+",task ids="+runningTasks.get(0).pid);
+                Log.v("myTag","topActivity="+runningTasks.get(0).processName+", importance="+runningTasks.get(0).importance+", pid="+runningTasks.get(0).pid);
                 if(runningTasks.get(0).importance!=ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND){
                     Log.v("myTag","menu button");
                         manager.moveTaskToFront(taskId, 0);
