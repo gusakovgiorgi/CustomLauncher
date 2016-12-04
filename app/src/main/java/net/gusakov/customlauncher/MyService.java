@@ -11,6 +11,7 @@ import android.content.pm.ResolveInfo;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.WindowManager;
 
 import java.util.List;
 
@@ -64,6 +65,7 @@ public class MyService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+
     private class ActivityRunnable implements Runnable {
         @Override
         public void run() {
@@ -83,6 +85,12 @@ public class MyService extends Service {
                         }
                     }else if(runningTasks.get(0).pid!=launcherPid && runningTasks.get(0).pid!=appPid) {
                         Log.v("myTag","stopseld");
+                        if(HomeActivity.view!=null) {
+                            WindowManager manager = ((WindowManager) getApplicationContext()
+                                    .getSystemService(Context.WINDOW_SERVICE));
+                            manager.removeView(HomeActivity.view);
+                            HomeActivity.view = null;
+                        }
                         stopSelf();
                         return;
                     }

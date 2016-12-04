@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -26,33 +27,17 @@ public class CustomDialog extends Dialog{
     public Activity activity;
     private int screenWidth;
     private int screenHeight;
-    LinearLayout rootViewLayout;
-    private List<AppDetail> appsList;
-    private Map<String,AppDetail> apps;
-    private String[] appsposition;
-    ListView list;
+    private LinearLayout rootViewLayout;
+    private ListView list;
+    private List<AppDetail> apps;
+    private List<AppDetail> unpublishedApps;
 
-    public CustomDialog(Activity a,View view,Map<String,AppDetail> appMap,String[] appsPosition) {
+    public CustomDialog(Activity a,View view,List apps) {
         super(a);
         rootViewLayout=(LinearLayout)view;
         activity=a;
-        apps=appMap;
-        this.appsposition=appsPosition;
-        appsList =new ArrayList<>();
-        boolean addPosition=true;
-        for(String appKey:appMap.keySet()) {
-            addPosition=true;
-            for(int i=0;i<appsposition.length;i++){
-                if (appKey.equals(appsPosition[i])){
-                    addPosition=false;
-                    break;
-                }
-            }
-            if(addPosition) {
-                appsList.add(appMap.get(appKey));
-            }
-
-        }
+        unpublishedApps=new ArrayList<>();
+        this.apps=apps;
     }
 
     @Override
@@ -60,7 +45,11 @@ public class CustomDialog extends Dialog{
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.custom_dialog);
-
+        for(AppDetail app:apps){
+            if(!app.isPublished()){
+                unpublishedApps.add(app);
+            }
+        }
         loadListView();
 //        manager=activity.getPackageManager();
     }
@@ -73,7 +62,7 @@ public class CustomDialog extends Dialog{
     private void loadListView(){
         list = (ListView)findViewById(R.id.apps_list);
 
-        ArrayAdapter<AppDetail> adapter = new ArrayAdapter<AppDetail>(getContext(),R.layout.list_item, appsList) {
+        ArrayAdapter<AppDetail> adapter = new ArrayAdapter<AppDetail>(getContext(),R.layout.list_item, unpublishedApps) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if(convertView == null){
@@ -81,13 +70,13 @@ public class CustomDialog extends Dialog{
                 }
 
                 ImageView appIcon = (ImageView)convertView.findViewById(R.id.item_app_icon);
-                appIcon.setImageDrawable(appsList.get(position).icon);
+                appIcon.setImageDrawable(unpublishedApps.get(position).icon);
 
                 TextView appLabel = (TextView)convertView.findViewById(R.id.item_app_label);
-                appLabel.setText(appsList.get(position).label);
+                appLabel.setText(unpublishedApps.get(position).label);
 
                 TextView appName = (TextView)convertView.findViewById(R.id.item_app_name);
-                appName.setText(appsList.get(position).name);
+                appName.setText(unpublishedApps.get(position).name);
 
                 return convertView;
             }
@@ -109,13 +98,13 @@ public class CustomDialog extends Dialog{
             @Override
             public void onItemClick(AdapterView<?> av, View v, int pos,
                                     long id) {
-                String packageStr=((TextView)v.findViewById(R.id.item_app_name)).getText().toString();
                 ImageView img = (ImageView) rootViewLayout.getChildAt(0);
-                img.setTag(apps.get(packageStr).name);
+//                img.setTag(unpublishedApps.get(pos).name);
                 TextView tv = (TextView)rootViewLayout.getChildAt(1);
-                img.setImageDrawable(apps.get(packageStr).icon);
-                tv.setText(apps.get(packageStr).label);
-                appsposition[Integer.valueOf((String)rootViewLayout.getTag())]=packageStr;
+                img.setImageDrawable(unpublishedApps.get(pos).icon);
+                tv.setText(unpublishedApps.get(pos).label);
+                unpublishedApps.get(pos).setPosition(Integer.valueOf((String)img.getTag()));
+                unpublishedApps.get(pos).published();
                 CustomDialog.this.dismiss();
             }
         });

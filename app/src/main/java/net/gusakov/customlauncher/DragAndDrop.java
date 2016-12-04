@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,7 +28,7 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
     private Activity a;
     Drawable enterShape;
     Drawable normalShape;
-    String[] appsPosition;
+    List<AppDetail> apps;
     private View draggedImageView;
     private View draggedTextView;
     private TimerTask mTimerTask;
@@ -45,14 +46,14 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
         return swipeEnded;
     }
 
-    DragAndDrop(Activity activity) {
+    DragAndDrop(Activity activity,List<AppDetail> apps) {
         a = activity;
-        this.appsPosition=((HomeActivity)a).appsPosotion;
         removeLinear = (LinearLayout) a.findViewById(R.id.removeContainerId);
         removeTextView=(TextView)a.findViewById(R.id.removeTextViewId);
         enterShape = a.getResources().getDrawable(
                 R.drawable.drop_shade);
         normalShape = a.getResources().getDrawable(R.drawable.normal_shade);
+        this.apps=apps;
 
     }
 
@@ -126,10 +127,12 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
                     ImageView img = new ImageView(a);
                     img.setImageResource(R.drawable.no_app);
                     img.setOnClickListener((HomeActivity) a);
+                    img.setTag(draggedView.getTag());
                     img.setOnLongClickListener(this);
                     previousContainer.addView(img, 0);
                     ((TextView) previousContainer.getChildAt(1)).setText("Choose app");
-                    removePositionFromList(appsPosition,draggedView);
+                    removePositionFromAppDetail(draggedView);
+//                    removePositionFromList(appsPosition,draggedView);
                     previousContainer.getChildAt(1).setVisibility(View.VISIBLE);
 
                 } else if (getSwipeEnded()) {
@@ -158,6 +161,16 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
         return true;
     }
 
+    private void removePositionFromAppDetail(View draggedView) {
+        int position=Integer.valueOf((String)draggedView.getTag());
+        for(AppDetail app:apps){
+            if(app.getPosition()==position){
+                app.setPosition(-1);
+                break;
+            }
+        }
+    }
+
     private void removePositionFromList(String[] appsPosition, View draggedView) {
         String tag=(String)draggedView.getTag();
         if(tag!=null) {
@@ -181,7 +194,11 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
 
         View thisView = currentContainer.getChildAt(0);
 
+        int currentViewPosition=Integer.valueOf((String)thisView.getTag());
+        int draggedViewPosition=Integer.valueOf((String)draggedView.getTag());
 
+        swipeAppDetailPositions(currentViewPosition,draggedViewPosition);
+        swipeTags(thisView,draggedView);
         previousContainer.removeView(draggedView);
         currentContainer.removeView(thisView);
 
@@ -190,6 +207,31 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
 
         currentContainer.getChildAt(1).setVisibility(View.INVISIBLE);
         previousContainer.getChildAt(1).setVisibility(View.VISIBLE);
+    }
+
+    private void swipeTags(View thisView, View draggedView) {
+        Object tmpTag=draggedView.getTag();
+        draggedView.setTag(thisView.getTag());
+        thisView.setTag(tmpTag);
+    }
+
+    private void swipeAppDetailPositions(int currentViewPosition, int draggedViewPosition) {
+        AppDetail firstApp=null;
+        for(AppDetail app: apps){
+            if(app.getPosition()==currentViewPosition){
+                firstApp=app;
+                break;
+            }
+        }
+        for(AppDetail app: apps){
+            if(app.getPosition()==draggedViewPosition){
+                app.setPosition(currentViewPosition);
+                break;
+            }
+        }
+        if(firstApp!=null){
+            firstApp.setPosition(draggedViewPosition);
+        }
     }
 
     private boolean outOfBound(DragEvent event) {
