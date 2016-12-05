@@ -166,6 +166,7 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
         for(AppDetail app:apps){
             if(app.getPosition()==position){
                 app.setPosition(-1);
+                app.unpublished();
                 break;
             }
         }

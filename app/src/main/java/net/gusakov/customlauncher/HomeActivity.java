@@ -66,7 +66,7 @@ public class HomeActivity extends Activity implements View.OnClickListener {
 
 
     private final List<Intent> certifedApp = new ArrayList<>(Arrays.asList(new Intent(Intent.ACTION_DIAL), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CONTACTS), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_DEFAULT).setType("vnd.android-dir/mms-sms"),
-            new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR), new Intent(android.provider.Settings.ACTION_SETTINGS), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR)));
+            new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR).addCategory(Intent.CATEGORY_LAUNCHER), new Intent(android.provider.Settings.ACTION_SETTINGS), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR)));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -219,12 +219,12 @@ public class HomeActivity extends Activity implements View.OnClickListener {
             if (availableActivities.size() > 0) {
 
                 AppDetail app = new AppDetail();
-                app.launcherIntent = intent;
                 if(firstTime && i<4) {
                     app.setPosition(i);
                 }
                 app.label = availableActivities.get(0).loadLabel(manager);
                 app.name = availableActivities.get(0).activityInfo.packageName;
+                app.launcherIntent=new Intent(app.name.toString());
                 app.icon = availableActivities.get(0).activityInfo.applicationInfo.loadIcon(manager);
                 apps.add(app);
 
