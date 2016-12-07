@@ -56,10 +56,16 @@ import static android.support.v7.widget.StaggeredGridLayoutManager.TAG;
                         }
                     } else if (!(((RunningAppProcessInfo) runningTasks.get(0)).pid == MyService.this.launcherPid || ((RunningAppProcessInfo) runningTasks.get(0)).pid == MyService.this.appPid)) {
                         Log.v("myTag", "stopseld");
+                        if(HomeActivity.view!=null) {
+                            WindowManager manager = ((WindowManager) getApplicationContext()
+                                    .getSystemService(Context.WINDOW_SERVICE));
+                            manager.removeView(HomeActivity.view);
+                            HomeActivity.view = null;
+                        }
                         MyService.this.stopSelf();
                         return;
                     }
-                    MyService.this.handler.postDelayed(this, 5000);
+                    MyService.this.handler.postDelayed(this, 200);
                 }
             }
         }

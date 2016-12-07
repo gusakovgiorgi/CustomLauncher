@@ -64,23 +64,35 @@ public class HomeActivity extends Activity implements View.OnClickListener {
     public static boolean statusBarHidden=false;
     private boolean homePressed = true;
 
+    // Verify clock implementation
+    String clockImpls[][] = {
+            {"HTC Alarm Clock", "com.htc.android.worldclock", "com.htc.android.worldclock.WorldClockTabControl" },
+            {"Standar Alarm Clock", "com.android.deskclock", "com.android.deskclock.AlarmClock"},
+            {"Froyo Nexus Alarm Clock", "com.google.android.deskclock", "com.android.deskclock.DeskClock"},
+            {"Moto Blur Alarm Clock", "com.motorola.blur.alarmclock",  "com.motorola.blur.alarmclock.AlarmClock"},
+            {"Samsung Galaxy Clock", "com.sec.android.app.clockpackage","com.sec.android.app.clockpackage.ClockPackage"} ,
+            {"Sony Ericsson Xperia Z", "com.sonyericsson.organizer", "com.sonyericsson.organizer.Organizer_WorldClock" },
+            {"ASUS Tablets", "com.asus.deskclock", "com.asus.deskclock.DeskClock"}};
+
 
     private final List<Intent> certifedApp = new ArrayList<>(Arrays.asList(new Intent(Intent.ACTION_DIAL), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CONTACTS), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_DEFAULT).setType("vnd.android-dir/mms-sms"),
-            new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR).addCategory(Intent.CATEGORY_LAUNCHER), new Intent(android.provider.Settings.ACTION_SETTINGS), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR)));
+            new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR).addCategory(Intent.CATEGORY_LAUNCHER), new Intent(android.provider.Settings.ACTION_SETTINGS), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR),
+            new Intent(Intent.ACTION_MAIN)));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        getWindow().addFlags(WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY);
         setContentView(R.layout.activity_home);
-//        notExpandStatusBar();
+        manager=getPackageManager();
+        notExpandStatusBar();
         Log.v(TAG, "activityCreated");
 
         initialLComponents();
 
 
         sharedPref = getPreferences(MODE_PRIVATE);
-        firstTime = sharedPref.getBoolean(FIRST_TIME_SHARED, true);
+        firstTime = true;//sharedPref.getBoolean(FIRST_TIME_SHARED, true);
         if (firstTime) {
             getCertifiedAppList(firstTime);
 //            LoadDefaultAppsPosition(appsPosotion);
@@ -210,7 +222,8 @@ public class HomeActivity extends Activity implements View.OnClickListener {
 
 
     private void getCertifiedAppList(boolean firstTime) {
-        manager = getPackageManager();;
+
+        findClockIntent();
 
         Intent intent;
         for (int i = 0; i < certifedApp.size(); i++) {
@@ -224,13 +237,31 @@ public class HomeActivity extends Activity implements View.OnClickListener {
                 }
                 app.label = availableActivities.get(0).loadLabel(manager);
                 app.name = availableActivities.get(0).activityInfo.packageName;
-                app.launcherIntent=new Intent(app.name.toString());
+                app.launcherIntent=manager.getLaunchIntentForPackage(app.name.toString());
                 app.icon = availableActivities.get(0).activityInfo.applicationInfo.loadIcon(manager);
                 apps.add(app);
 
             }
         }
     }
+
+    private void findClockIntent() {
+        for(int i=0; i<clockImpls.length; i++) {
+            String vendor = clockImpls[i][0];
+            String packageName = clockImpls[i][1];
+            String className = clockImpls[i][2];
+            Intent intent=new Intent(packageName);
+//                ComponentName cn = new ComponentName(packageName, className);
+//                intent.setComponent(cn);
+                List<ResolveInfo> availableActivities = manager.queryIntentActivities(intent, 0);
+            if(availableActivities.size()>0){
+                certifedApp.get(certifedApp.size());
+
+            }
+
+        }
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -295,6 +326,14 @@ public class HomeActivity extends Activity implements View.OnClickListener {
     }
 
     public void launchApp(View view) {
+//        if(packageStr.contains(".DialtactsActivity") || packageStr.contains(".LaunchContactsActivity")){
+//            String newPackageStr=packageStr.substring(0,packageStr.lastIndexOf('.'));
+//            intent=new Intent();
+//            intent.setComponent(new ComponentName(newPackageStr,packageStr));
+//
+//        }else {
+//            intent = manager.getLaunchIntentForPackage(packageStr);
+//        }
         int position = Integer.valueOf((String) view.getTag());
         String packageName=null;
         Intent intent=null;
@@ -308,7 +347,7 @@ public class HomeActivity extends Activity implements View.OnClickListener {
         if (intent != null) {
 
             intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             HomeActivity.this.startActivity(intent);
             overridePendingTransition(R.anim.zoom, 0);
             restartService(packageName);
@@ -430,7 +469,7 @@ public class HomeActivity extends Activity implements View.OnClickListener {
     protected void onRestart() {
         startService();
         if(view==null) {
-//            notExpandStatusBar();
+            notExpandStatusBar();
         }
         super.onRestart();
         Log.v(TAG, "onRestart()");
