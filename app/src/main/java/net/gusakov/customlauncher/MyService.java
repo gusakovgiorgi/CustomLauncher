@@ -2,12 +2,8 @@ package net.gusakov.customlauncher;
 
 import android.app.ActivityManager;
 import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -15,19 +11,10 @@ import android.view.WindowManager;
 
 import java.util.List;
 
-import static android.support.v7.widget.StaggeredGridLayoutManager.TAG;
 
+import android.app.ActivityManager.RunningAppProcessInfo;
 
-    import android.app.ActivityManager;
-    import android.app.ActivityManager.RunningAppProcessInfo;
-    import android.app.Service;
-    import android.content.Intent;
-    import android.os.Handler;
-    import android.os.IBinder;
-    import android.util.Log;
-    import java.util.List;
-
-    public class MyService extends Service {
+public class MyService extends Service {
         ActivityRunnable activityRunnable;
         int appPid;
         Handler handler;
@@ -56,11 +43,11 @@ import static android.support.v7.widget.StaggeredGridLayoutManager.TAG;
                         }
                     } else if (!(((RunningAppProcessInfo) runningTasks.get(0)).pid == MyService.this.launcherPid || ((RunningAppProcessInfo) runningTasks.get(0)).pid == MyService.this.appPid)) {
                         Log.v("myTag", "stopseld");
-                        if(HomeActivity.view!=null) {
+                        if(HomeActivity.notExpandView !=null) {
                             WindowManager manager = ((WindowManager) getApplicationContext()
                                     .getSystemService(Context.WINDOW_SERVICE));
-                            manager.removeView(HomeActivity.view);
-                            HomeActivity.view = null;
+                            manager.removeView(HomeActivity.notExpandView);
+                            HomeActivity.notExpandView = null;
                         }
                         MyService.this.stopSelf();
                         return;
@@ -104,10 +91,4 @@ import static android.support.v7.widget.StaggeredGridLayoutManager.TAG;
         }
     }
 
-//if(HomeActivity.view!=null) {
-//                            WindowManager manager = ((WindowManager) getApplicationContext()
-//                                    .getSystemService(Context.WINDOW_SERVICE));
-//                            manager.removeView(HomeActivity.view);
-//                            HomeActivity.view = null;
-//                        }
 

@@ -75,12 +75,9 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
             case DragEvent.ACTION_DRAG_ENTERED:
 
 
-
-                // Dropped, reassign View to ViewGroup
                 draggedView = (View) event.getLocalState();
 
                 currentContainer = (LinearLayout) v;
-//                ViewGroup previousContainer = (ViewGroup) draggedView.getParent();
 
                 if (currentContainer != previousContainer) {
                     if(currentContainer==removeLinear){
@@ -104,8 +101,6 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
                 }
 
 
-//                draggedView.setVisibility(View.VISIBLE);
-
 
                 break;
             case DragEvent.ACTION_DRAG_EXITED:
@@ -123,6 +118,8 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
             case DragEvent.ACTION_DROP:
 
                 if (currentContainer == removeLinear) {
+                    removeTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX,a.getResources().getDimensionPixelSize(R.dimen.remove_text_size));
+                    removeTextView.setTextColor(a.getResources().getColor(R.color.red));
                     previousContainer.removeView(draggedView);
                     ImageView img = new ImageView(a);
                     img.setImageResource(R.drawable.no_app);
@@ -246,13 +243,9 @@ public class DragAndDrop implements View.OnDragListener, View.OnLongClickListene
     @Override
     public boolean onLongClick(View view) {
 
-        if (view.getTag() != null) {
+        if (!((ImageView)view).getDrawable().getConstantState().equals(a.getResources().getDrawable(R.drawable.no_app).getConstantState())) {
             String textViewString = ((TextView) ((ViewGroup) view.getParent()).getChildAt(1)).getText().toString();
 
-            // create it from the object's tag
-//            ClipData.Item item = new ClipData.Item(textViewString);
-//
-//            String[] mimeTypes = {ClipDescription.MIMETYPE_TEXT_PLAIN};
             ClipData data = ClipData.newPlainText(textViewString, "label");
 //            ClipData data = new ClipData(textViewString, mimeTypes, item);
             View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);

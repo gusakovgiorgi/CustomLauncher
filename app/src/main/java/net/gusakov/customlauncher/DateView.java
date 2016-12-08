@@ -96,8 +96,6 @@ public class DateView extends TextView {
                 long neededTime = (c.getTimeInMillis()-System.currentTimeMillis());
                 long next=now+neededTime;
                 Log.v("dateTag","date time is "+next+"now is="+now);
-//                long now = SystemClock.uptimeMillis();
-//                long next = now + (1000 - now % 1000);
                 mHandler.postAtTime(mTicker, next);
 
             }
